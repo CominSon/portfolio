@@ -1,0 +1,2 @@
+Z: && cd Z:\Exchange\Maksim\DfProjects\spod_with_otp\spod_check_status\src && python Z:\Exchange\Maksim\DfProjects\spod_with_otp\spod_check_status\src\main.py
+

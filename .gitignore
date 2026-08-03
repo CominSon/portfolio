@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+
+# Secrets / local runtime
+.env
+.env.*
+*.pem
+cookies.json
+*_cookies.json
+results/profile/
+
+# Office temp locks
+~$*
+*.tmp
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

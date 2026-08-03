@@ -1,0 +1,1 @@
+start cmd /k "Z: && cd Z:\Exchange\Maksim\DfProjects\spod_with_otp\parcel_spod\src && python Z:\Exchange\Maksim\DfProjects\spod_with_otp\parcel_spod\src\main.py"
