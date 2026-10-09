@@ -1,22 +1,36 @@
 # Portfolio
 
-Портфолио проектов: код, описания, демо и материалы.
+Подборка рабочих скриптов и сервисов для демонстрации работодателю.
 
 ## Структура
 
-| Папка | Назначение |
-|-------|------------|
-| `projects/solo` | Проекты, написанные самостоятельно |
-| `projects/vibe` | Проекты с активным использованием вайб-кодинга |
-| `presentations` | Презентации |
-| `assets` | Общие медиа и ресурсы |
+| Папка | Смысл |
+|-------|--------|
+| `projects/solo/` | Код, написанный вручную без AI |
+| `projects/hybrid/` | AI + мой контроль и правки |
+| `projects/vibe/` | Агент писал код при минимальном ревью |
 
-## Проекты
+## Solo
 
-### Solo
+- **SpodUI** — автоматизация СПОД (Selenium, Excel, Greenplum)
+- **FailCheck** — мониторинг FAILED по PXF/процедурам
+- **SchedulePXF** — расписание загрузок PXF из Excel
+- **SMDProxy** — PXF/PROXY-загрузки по Excel
+- **Vacuum** — `VACUUM FULL ANALYZE` по схемам GP
+- **connectBD** — библиотека подключений (GP / Hive / Oracle)
 
-- [spod_ui](projects/solo/spod_ui/) — набор скриптов автоматизации загрузки и сопровождения данных в СПОД (UI + API + Greenplum)
+## Hybrid
 
-### Vibe
+- **AIDialogRadar** — RAG-поиск по группам СберЧата (GigaChat, FAISS, Flask)
+- **AINavPDFAgent** — AI-агент PDF-выгрузок (GigaChat, почта, PG)
+- **GolandProjects/gym_bot** — Telegram-бот записи на занятия (Go)
 
-_Пока пусто._
+## Vibe
+
+- **AITechnicalInterview** — full-stack AI-собеседования (FastAPI + React, STT/TTS, Docker)
+- **AIWidgetSummaryOS** — агент отчётов по виджетам УБ
+- **MCPServers** — набор MCP-агентов (GP, mail, Bitbucket, reports)
+
+## Запуск
+
+У каждого проекта свой README (где есть). Секреты и локальные `.env` в репозиторий не входят — используйте `.env.example`.

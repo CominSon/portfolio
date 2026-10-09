@@ -1,0 +1,4 @@
+logs/
+mail_mcp_config/
+mail_mcp_attachments/
+*.pyc

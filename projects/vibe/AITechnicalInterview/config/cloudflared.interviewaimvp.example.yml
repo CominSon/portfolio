@@ -1,0 +1,11 @@
+# Cloudflare Tunnel для interviewaimvp.ru (DNS остаётся в REG.RU).
+# CNAME в REG.RU: app → ВАШ-UUID.cfargotunnel.com
+# См. docs/DOMAIN_TUNNEL_RU_REG.md
+
+tunnel: ai-interview
+credentials-file: /home/ВАШ_ЛОГИН/.cloudflared/ВАШ-UUID.json
+
+ingress:
+  - hostname: app.interviewaimvp.ru
+    service: http://127.0.0.1:5173
+  - service: http_status:404

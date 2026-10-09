@@ -1,0 +1,1 @@
+cd /home/datalab/nfs/AIWidgetSummaryOS && python -u /home/datalab/nfs/AIWidgetSummaryOS/src/main.py

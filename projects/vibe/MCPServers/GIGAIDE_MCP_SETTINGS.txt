@@ -1,0 +1,87 @@
+Настройки MCP для GigaIDE (Tools → GigaCode → MCP).
+
+Каждый сервер добавляется ОТДЕЛЬНО: свой блок JSON (или строка Configuration).
+Общее для всех:
+  PYTHONPATH = U:\MCP Servers;U:\Python313\site-packages
+  PYTHONUNBUFFERED = 1
+  cwd = U:\MCP Servers
+
+После настройки: перезапустите MCP Server и начните новый чат.
+
+================================================================================
+1) greenplum
+   Configuration: python -u -m gp_mcp_agent
+================================================================================
+{
+  "mcpServers": {
+    "greenplum": {
+      "command": "python",
+      "args": ["-u", "-m", "gp_mcp_agent"],
+      "env": {
+        "PYTHONPATH": "U:\\MCP Servers;U:\\Python313\\site-packages",
+        "PYTHONUNBUFFERED": "1"
+      },
+      "cwd": "U:\\MCP Servers"
+    }
+  }
+}
+
+================================================================================
+2) bitbucket
+   Configuration: python -u -m bitbucket_mcp_agent
+================================================================================
+{
+  "mcpServers": {
+    "bitbucket": {
+      "command": "python",
+      "args": ["-u", "-m", "bitbucket_mcp_agent"],
+      "env": {
+        "PYTHONPATH": "U:\\MCP Servers;U:\\Python313\\site-packages",
+        "PYTHONUNBUFFERED": "1"
+      },
+      "cwd": "U:\\MCP Servers"
+    }
+  }
+}
+
+================================================================================
+3) mail
+   Configuration: python -u -m mail_mcp_agent
+================================================================================
+{
+  "mcpServers": {
+    "mail": {
+      "command": "python",
+      "args": ["-u", "-m", "mail_mcp_agent"],
+      "env": {
+        "PYTHONPATH": "U:\\MCP Servers;U:\\Python313\\site-packages",
+        "PYTHONUNBUFFERED": "1"
+      },
+      "cwd": "U:\\MCP Servers"
+    }
+  }
+}
+
+================================================================================
+4) report-project
+   Configuration: python -u -m report_mcp_agent
+================================================================================
+{
+  "mcpServers": {
+    "report-project": {
+      "command": "python",
+      "args": ["-u", "-m", "report_mcp_agent"],
+      "env": {
+        "PYTHONPATH": "U:\\MCP Servers;U:\\Python313\\site-packages",
+        "PYTHONUNBUFFERED": "1"
+      },
+      "cwd": "U:\\MCP Servers"
+    }
+  }
+}
+
+================================================================================
+Правила GigaCode
+================================================================================
+Скопируйте содержимое GIGACODE_MCP_RULES.txt (от «--- НАЧАЛО ПРАВИЛ ---»)
+в %USERPROFILE%\.gigacode\rules\mcp.md

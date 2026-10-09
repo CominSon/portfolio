@@ -1,0 +1,22 @@
+# MCP Servers — зависимости под Python 3.13
+# Источник версий: python313_packages.txt (среда U:\Python313\site-packages)
+#
+# ВАЖНО:
+# 1) НЕ устанавливать пакет dataclasses (бэкпорт для 3.6).
+#    На 3.7+ он ломает SQLAlchemy: typing._ClassVar.
+#    Если стоит:  pip uninstall dataclasses -y
+# 2) В freeze был SQLAlchemy==1.3.19, но runtime/ошибки — ветка 2.0 (e/20).
+#    Для 3.13 нужен SQLAlchemy 2.0.x (проверено с greenlet).
+# 3) connectBD / noterball / pywin32 — корпоративные, ставятся отдельно в PYTHONPATH.
+
+SQLAlchemy>=2.0.36,<2.1
+greenlet>=3.0.0
+psycopg2>=2.9.9
+pandas>=2.2.0,<3
+numpy>=1.26.0
+openpyxl>=3.1.0
+python-dateutil>=2.9.0
+pytz>=2024.1
+typing_extensions>=4.12.0
+PyYAML>=6.0
+requests>=2.31.0

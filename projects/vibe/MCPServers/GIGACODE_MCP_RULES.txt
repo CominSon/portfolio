@@ -1,0 +1,310 @@
+================================================================================
+  ПРАВИЛА GIGACODE (IDEA → Rules) ДЛЯ MCP-СЕРВЕРОВ WEALTHHUB
+  Скопируйте содержимое ниже (от «--- НАЧАЛО ---») в настройки Rules.
+================================================================================
+
+--- НАЧАЛО ПРАВИЛ ---
+
+# Общие принципы
+
+- Общайся с пользователем **только на русском**.
+- Для задач БД, Git и почты **используй MCP tools** соответствующих серверов. **Не** подменяй их `execute_command`, терминалом или ручным git/SQL, если есть подходящий tool.
+- Пароли и секреты **не спрашивай в чате**: авторизация через **noterball** + `pen_is.xlsx` (уже настроено в серверах).
+- **Не** выводи пароли, токены и содержимое pen_is в ответах.
+- Конфиги MCP-серверов хранятся **внутри папок пакетов**, не создавай файлы настроек рядом с `U:\MCP Servers`:
+  - `bitbucket_mcp_agent/bb_mcp_config/`
+  - `mail_mcp_agent/mail_mcp_config/`
+  - `gp_mcp_agent/gp_mcp_config/`
+- В `mcpServers` для всех серверов `cwd` = корень **`U:\MCP Servers`** (или аналог), **не** путь к отдельному git-клону.
+- Если пользователь пишет **«покажи все MCP функции»**, **«справочник MCP»**, **«что ты умеешь»** — выведи **пользовательский** список из `MCP_TOOLS_GUIDE.md` (разделы до «Служебные функции»), **без** имён tools и без технических команд.
+- Если пользователь пишет **«с доп.»**, **«полный справочник»**, **«технические функции»** — добавь раздел «Служебные функции (доп.)» из того же файла.
+- **`healthcheck`**, **`healthcheck_mail`**, **`healthcheck_git`**, **`set_project_path`** — вызывай **сам**, без просьбы пользователя. В справочнике для пользователя их не показывай.
+
+# MCP vs правка файлов проекта (критично)
+
+| Задача пользователя | Что делать |
+|---------------------|------------|
+| «Поправь docs/TECHNICAL.md», «исправь текст в BUSINESS», «отредактируй SQL в проекте отчёта» | **Править файлы напрямую** (Write/StrReplace IDE) **или** report MCP `write_report_file` / `add_report_revision`. **Не** `start_report_project` с нуля. |
+| «Откати файл к предыдущей версии», «сравни с прошлым коммитом», «закоммить» | MCP **bitbucket** (`git_restore`, `git_compare_recent`, `commit_and_push`). |
+| «Обнови мои MCP Серверы», «обновить MCP», «синхронизировать MCP Servers» | MCP **bitbucket** → **`update_mcp_servers`** (сразу, без подтверждения). |
+| «Собери проект отчёта», «lineage / документация по qs_…» | MCP **report-project** (workspace) + **GP** (агент сам строит план). |
+| «Сколько строк в таблице», «логи процедуры» | MCP **greenplum**. |
+
+- **Не** поднимай/«запускай» MCP-серверы как ответ на правку текста или SQL в уже собранной папке.
+- Если нужен только diff двух версий файла — `git_compare_recent(path=...)` или `preview_file_at_commit` + текущий файл. Путь — **относительно корня клона** или абсолютный внутри клона; сервер сам нормализует.
+- Замечания вроде «забыл процедуру X» → `add_report_revision` + доработка **того же** проекта (`get_report_context`), **не** новый `start_report_project`.
+
+# Когда не спрашивать разрешение
+
+- **Чтение и просмотр** — выполняй **сразу**, без «можно?», «продолжить?», «стартуй?»:
+  - Greenplum: `healthcheck`, `run_select`, `search_tables`, `get_columns`, `explain`, логи, lineage и т.д.
+  - Bitbucket: `git_status`, `git_diff`, `git_compare_recent`, `git_log`, `get_repo_info`, `get_project_path`, `list_branches`, `update_mcp_servers`
+  - Mail: `list_folders`, `list_messages`, `search_messages`, `get_message`, `list_project_files`
+- **Исключение**: перед **отправкой письма другим людям** при неоднозначном `resolve_recipients` — покажи таблицу ФИО | email и дождись выбора адресов.
+
+# Когда одного шага достаточно
+
+- «Закоммить и отправить» → один вызов **`commit_and_push`** (не цепочка prepare → commit → prepare → push).
+- «Выгрузить и отправить себе» → `set_project_path` → `export_query_csv` → `get_mail_profile` → `send_email` с **`to: [my_email]`** и `attachment_paths` из `export_path`.
+- «Найти в почте …» → `search_messages` → `get_message` (**один раз каждый**, без повторов).
+
+---
+
+# MCP: greenplum (gp_mcp_agent)
+
+## Назначение
+Анализ и запросы к Greenplum (UBHQ / WEALTHHUB), логи процедур и PXF, выгрузки CSV.
+
+## SQL — жёсткие ограничения
+- Разрешено: **SELECT**, **WITH**, **EXPLAIN**.
+- Запрещено: INSERT, UPDATE, DELETE, DROP, TRUNCATE, ALTER, CREATE, GRANT и любые изменяющие операции.
+- Работа только в схемах:
+  - `s_grnplm_ld_blago_ubhq_ext` (external)
+  - `s_grnplm_ld_blago_ubhq_in` (materialized, префикс `smd_`)
+  - `s_grnplm_ld_blago_ubhq_work`
+  - `s_grnplm_ld_blago_ubhq_2prod`
+
+## Сессии БД — не путать
+| Запрос пользователя | Tool | Параметры |
+|---------------------|------|-----------|
+| «Мои сессии», «моя УЗ», «мои активные запросы» | `list_sessions` | `scope: "self"` |
+| «Планировщик», «18764734», «Максима» | `list_sessions` | `scope: "scheduler"` |
+
+**Не** используй `run_select` по `pg_stat_activity` для сессий — только `list_sessions`.
+
+## Ошибки SQL и повторные попытки
+- Если tool вернул **`isError: true`** и **`retry_recommended: true`** — **обязательно исправь** SQL/параметры и **повтори вызов** (до **3 попыток** подряд).
+- Читай поля **`message`**, **`hint`**, **`detail`**, **`suggested_sql_note`** в ответе tool.
+- JSON в Greenplum: **не используй** `@?` (SQL/JSON path). Используй `->`, `->>`, `jsonb_array_elements`, `::jsonb`.
+- Сложный SQL с JSON: сначала покажи пользователю черновик запроса, затем выполняй `run_select`.
+
+Планировщик: **18764734** (Павленко Максим Юрьевич). Для списка объектов по владельцу — `list_owned_objects`, **не** ad-hoc SELECT по `pg_namespace.relowner`.
+
+- При **`statement timeout`** / **`QueryCanceled`** — **не повторяй** тот же тяжёлый запрос. Упрости SQL (LIMIT, сузь фильтр) или используй `export_query_csv`.
+
+## Проект и выгрузки CSV
+1. В начале работы с GP: **`get_project_path`** — если IDE передала путь через env, сервер **сохранит его автоматически** (`effective_source` содержит `auto_saved`).
+2. При смене проекта в IDEA — **`set_project_path`** (новый путь).
+3. CSV сохраняются в **`<проект>/export/`**, не в папку MCP Servers.
+4. `get_project_path` — проверить, куда пойдёт выгрузка.
+
+## Большие выборки
+- До ~100 строк в чат: `run_select`.
+- Полная выгрузка: **`export_query_csv`** или `export_csv=true` в `run_select` / `compare_field_values`.
+- Загрузка файла: **`load_file_to_table`**. Путь → спросить **только table_name** (и sheet_name для Excel). **Кодировку и разделитель CSV агент определяет сам** (поле `detected` в ответе tool).
+- Выгрузка в Excel: `export_query_csv` с **`format: xlsx`** — ID и длинные числа как текст, даты как даты.
+- `set_project_path` в GP сохраняет **общий** путь (`mcp_workspace_config/project_path.json`). Bitbucket/git **подхватывает его автоматически** — не проси пользователя привязывать git отдельно.
+- `search_tables`: параметр **`max_results`** до 200, если нужно больше 50 таблиц.
+- В ответе используй `export_path` для следующих шагов (почта, анализ файла).
+
+## DDL external
+- `get_table_ddl` для external-таблиц возвращает полный DDL с **LOCATION**, FORMAT, ENCODING (из `pg_get_exttable_def`).
+
+## Универсальные запросы (основной путь)
+- Пользователь пишет **обычным языком** («сколько упало за неделю», «последняя успешная загрузка по списку витрин»).
+  Ты переводишь это в SQL и вызываешь **`run_select`** или **`export_query_csv`** (много строк / файл).
+- Схемы, колонки логов, примеры SQL — в **instructions** MCP greenplum (`DOMAIN_KNOWLEDGE`). Читай их перед запросом к логам.
+
+## Логи (logs_procedure и logs_pxf_table)
+- Обе таблицы в `s_grnplm_ld_blago_ubhq_in`: одинаковая структура (текст + date_start/date_end).
+- **logs_procedure:** `procedure_name`, status, date_start, date_end, logs_text.
+- **logs_pxf_table:** `table_name` (ext, без smd_), status, date_start, date_end, logs_text.
+- **status — только `DONE` (успех) или `FAILED` (ошибка).** Не SUCCESS, не LIKE '%fail%'.
+- Последний успех: `status = 'DONE'` и `MAX(date_start)`, не `LIMIT 1` без фильтра.
+- Список из 10+ витрин: один SQL с `VALUES (...)`; большие выборки — `export_query_csv`.
+
+## compare_tables
+- External: `s_grnplm_ld_blago_ubhq_ext.<table>`
+- Materialized: `s_grnplm_ld_blago_ubhq_in.smd_<table>`
+- В tool передавай имя **без** префикса `smd_`.
+
+---
+
+# MCP: bitbucket (bitbucket_mcp_agent)
+
+## Назначение
+Git для репозиториев WEALTHHUB на `df-bitbucket.ca.sbrf.ru`: **dashboards**, **users_scripts**.
+
+## Выбор репозитория (несколько клонов в IDEA)
+1. В начале работы с Git: **`get_project_path`** — путь из IDEA env **сохраняется автоматически** при первом определении.
+2. Если `needs_set_project_path=true` — **один раз** спроси путь к открытому клону и вызови **`set_project_path`** (например `U:\BDProjects\users_scripts`).
+3. При переключении dashboards ↔ users_scripts — **снова** `set_project_path`.
+4. Не полагайся на `execute_command git` в каталоге MCP Servers — git работает только через **project_path**.
+
+## Репозитории
+| Репо | Правила |
+|------|---------|
+| **dashboards** | Работа **только в своей ветке**. Push в **master/main запрещён** (только PR вручную в Bitbucket). |
+| **users_scripts** | Своя ветка на пользователя; master не используется. |
+
+## Ветка по умолчанию
+- Имя ветки = **УЗ Windows** в верхнем регистре (`getpass.getuser().upper()`, напр. `18764734`).
+- Проверка: `get_repo_info` → `suggested_branch`.
+
+## Коммит и push — правила
+- **Не коммить** файлы и папки, где **любой компонент пути** начинается с **`.`** (`.idea`, `.gigacode`, `.gigaide` и т.д.) — это делает сервер автоматически.
+- «Закоммить и отправить» / «commit and push» → **`commit_and_push`** с осмысленным `message`.
+- Отдельно: `git_commit` (только с `message`, без push), `git_push`.
+- **Не вызывай** `git_commit` / `healthcheck_mail` с пустыми аргументами — если нужен только push, используй `commit_and_push`.
+- **`git push --force` запрещён** — не предлагай и не вызывай.
+- Tools **`prepare_commit`** и **`prepare_push` удалены** — не используй и не упоминай.
+- Push выполняется **через MCP с noterball** — **не** проси пользователя вводить логин/пароль в окне Git Credential Manager. Если push упал — сообщи текст ошибки tool, не переключайся молча на терминал.
+
+## Pull Request
+- **Не реализован** (REST отложен). PR создаётся пользователем в веб-интерфейсе Bitbucket; можешь дать ссылку из вывода push, если она есть.
+
+## Просмотр изменений (без подтверждений)
+| Задача | Tool |
+|--------|------|
+| Что изменилось | `git_status` |
+| Текст diff | `git_diff` |
+| Сравнить 2 последние версии | `git_compare_recent` (`commits_back: 1`, `path` = файл) |
+| История | `git_log` |
+| Файл в старом коммите | `preview_file_at_commit` |
+| Откат файла | `git_restore` (осторожно, по явной просьбе) |
+
+- Для сравнения/превью передавай путь **файла внутри клона** (абсолютный `U:\BDProjects\dashboards\...` или относительный от корня репо). Сервер сам сделает relative path.
+- «Предыдущая версия файла» ≠ HEAD: нужно `source=HEAD~1` / `git_compare_recent(commits_back=1)`, не просто `git_restore` без source.
+- **Не** уходи в PowerShell/`execute_command git`, если MCP вернул ошибку — исправь параметры (путь, set_project_path) и повтори tool.
+
+## Синхронизация
+- Обновить ссылки на ветки: `git_fetch`
+- Подтянуть в текущую ветку: `git_pull`
+
+## Обновление локальных MCP Servers (критично)
+- Фразы **«Обнови мои MCP Серверы»**, **«обновить MCP»**, **«синхронизировать MCP Servers»** → сразу вызови **`update_mcp_servers`** (MCP **bitbucket**). Не клонируй python.git через терминал и не копируй файлы вручную.
+- Источник: `https://df-bitbucket.ca.sbrf.ru/scm/wealthhub/python.git`, ветка **master**, папка **`MCP Servers`** → локально **`U:\MCP Servers`**.
+- Поведение tool:
+  1. Сравнивает каждый пакет `*_mcp_agent` с remote; при отличиях **обновляет только изменившиеся** серверы.
+  2. Если обновлений нет — так и скажи пользователю.
+  3. Если сервера **не было локально** — копирует папку и в ответе tool будет `new_server_setup`: **покажи пользователю JSON настройки** GigaIDE (как в `mcpServers`) и кратко опиши, что делает сервер; попроси добавить в Tools → GigaCode → MCP.
+  4. Сравнивает `GIGACODE_MCP_RULES.txt` с `%USERPROFILE%\.gigacode\rules\mcp.md` и при отличии **заменяет** mcp.md; сообщи, что правила обновлены.
+  5. При **любом** изменении обязательно напиши: нужно **перезапустить MCP Server** в настройках GigaIDE и **начать новый чат**.
+- `dry_run: true` — только отчёт без копирования (если пользователь явно просит «только проверить»).
+
+---
+
+# MCP: mail (mail_mcp_agent)
+
+## Назначение
+Корпоративная почта omega (как Outlook): POP3 входящие, SMTP исходящие.
+
+## Подключение
+- POP3: `pop.omega.sbrf.ru:995` SSL
+- SMTP: `smtp.omega.sbrf.ru:2525` TLS
+- **Логин POP3/SMTP = УЗ Windows** (mail_login, напр. 18764734).
+- **Пароль = noterball(PPZ)** из pen_is.xlsx (PPZ зашифрован, не использовать как текст).
+- **`healthcheck_mail`** — единственный первый шаг: login, пароль, проверка POP3.
+- Если **`my_email=null`**, **`needs_user_input=true`** или **`email_configured=false`** — **обязательно спроси** у пользователя корпоративный email и вызови **`set_my_email(email=...)`**. Не пытайся отправлять письма без From.
+- Outlook должен быть **запущен** для автоподстановки email (если нет строки в pen_is).
+
+## Первичная настройка
+1. **`healthcheck_mail`**
+2. Если email не определён — спросить у пользователя → **`set_my_email`**
+
+## Входящие
+- POP3 — только **INBOX** (письма на сервере). Папки Outlook (Отправленные и т.д.) через POP3 недоступны.
+- Поиск: `search_messages` по последним письмам → `get_message`.
+
+## Отправка
+- **Всегда** указывай `to: ["email@..."]` явно (из `get_mail_profile` или `resolve_recipients`) — чтобы адресаты были видны в окне RUN.
+- `send_to_self: true` — дополнительно добавит my_email.
+- `dry_run: true` — показать получателей без отправки.
+- Вложения: абсолютный путь Windows (`U:\...`) или относительный от cwd проекта IDE.
+- Получатель по ФИО: **`resolve_recipients`**. Если `ambiguous=true` — таблица контактов, жди выбор email.
+
+## Календарные приглашения
+- `get_message` возвращает `calendar_invites` (тема, дата, место из .ics) и `body_text` (в т.ч. HTML-письма).
+
+## Поиск по почте
+- Универсальный поиск: **`search_messages`** (подстрока в теме/теле/отправителе) → **`get_message`** для деталей.
+- Не выдумывай отдельные tools «поиск процедур в почте» — это частный случай `search_messages`.
+
+## ConnectionRefused (WinError 10061)
+- Обычно нет доступа к `pop.omega.sbrf.ru:995`. Решение: корп. сеть, VPN, `healthcheck_mail`.
+
+---
+
+# Связка серверов (типовые сценарии)
+
+## Выгрузка из GP → письмо себе
+1. `set_project_path` (путь проекта IDEA)
+2. `export_query_csv` (sql, filename_prefix)
+3. `get_mail_profile` → `send_email` с **`to: [my_email]`**, `attachment_paths=[export_path]`
+
+## Письмо с отчётом об ошибках → анализ в GP
+1. `search_messages` → `get_message` (при необходимости `save_attachments=true`)
+2. Разбор текста агентом → `run_select` по найденным процедурам / логам
+
+## Изменения SQL в users_scripts → Bitbucket
+1. `set_project_path` (если ещё не задан)
+2. `git_status` / `git_diff` — показать пользователю кратко
+3. По просьбе «отправить» → **`commit_and_push`**
+
+---
+
+# Запрещено агенту
+
+- Запускать `git commit`, `git push`, `git add` через терминал, если доступен MCP **bitbucket**.
+- Коммитить dot-файлы (`.idea`, `.gigacode`, …) — даже если пользователь сказал «всё»; объясни, что служебные папки IDE исключены правилом сервера.
+- Push в **master** репозитория **dashboards**.
+- `git push --force`.
+- INSERT/UPDATE/DELETE в Greenplum через MCP (кроме **`load_file_to_table`**).
+- Спрашивать пароль Bitbucket/почты в чате.
+- Многократно спрашивать «можно продолжить?» между шагами **чтения** или после того, как пользователь уже сказал «делай» / «не спрашивай».
+- Использовать удалённые tools: `prepare_commit`, `prepare_push`.
+
+---
+
+# MCP: report-project (report_mcp_agent) v3.2
+
+## Назначение
+Workspace. Канон — `get_report_context.lineage_protocol`. Strictly follow.
+
+## Структура папок
+`<Название отчёта>/<object_slug>/` — верхняя папка = название отчёта
+(напр. «УКП Недельный»); подпапка на английском из финала
+(`qs_t_ukp_weeks` → `ukp_weeks`) или `object_folder` / просьба пользователя.
+MCP `project_root` = object_slug.
+DDL: `sql/ddl/objects/sources|intermediate|final/` + `sql/ddl/functions/`.
+Обновление DDL: `refresh_project_ddl` / `python/sync_all_ddl.py`
+(не выдумывать DDL). После изменений структуры — `create_structure_md.py`.
+
+## Протокол (кратко)
+1. `get_link_object` → сырой список; агент смотрит каждую функцию/view.
+2. Физические reads. **VIEW = шаг как процедура**:
+   `procedure=view`, `writes_to=view`, `reads_from=…`; имя view **остаётся**
+   в reads_from родителя (не подменять внутренностями).
+   Helper-преобразования — `related_transforms`, **не** источники.
+3. Рекурсия; промежуточные витрины ≠ источники.
+4. `inventory.sources` (не «терминальные»).
+5. `in.smd_*` ≈ PXF; `work.smd_*` = промежуточная.
+6. **Финальная перепроверка** всех sources.
+
+## Доработка
+Дельта → remove → **обязательно** `render_report_docs` (TECHNICAL+SVG+run_order)
++ BUSINESS → resolve. Правка lineage без TECHNICAL — нарушение.
+
+## Артефакты
+- SVG: **сверху вниз** (источники сверху → финал снизу); день+время **полностью**
+  (без обрезки), не голое `daily`.
+- TECHNICAL §5: **одна** таблица порядка запуска, без дублей и «целевой таблицы».
+- Порядок — по типичному времени запуска.
+- BUSINESS: источники с **полями**; промежуточные — отдельно.
+- Перед работой: `get_report_context`.
+---
+
+# Рекомендуемый стиль ответов
+
+- Кратко: что сделано, ключевые пути (`export_path`, `project_path`, ветка).
+- При ошибке MCP — текст из tool + конкретная подсказка (set_project_path, set_my_email, healthcheck).
+- Diff и большие таблицы — структурированно; полные CSV не дублируй в чат, указывай путь к файлу.
+
+--- КОНЕЦ ПРАВИЛ ---
+
+================================================================================
+  Как добавить в IDEA / GigaCode
+  Settings → Tools → GigaCode → Rules → вставить блок между НАЧАЛО и КОНЕЦ.
+  Prompt Library → промпты из GIGACODE_PROMPT_LIBRARY.md (особенно «Как обновляется таблица»).
+  При необходимости разбейте на несколько Rules, если IDE ограничивает размер.
+================================================================================

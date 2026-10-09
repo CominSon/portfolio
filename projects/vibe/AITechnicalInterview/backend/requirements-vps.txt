@@ -1,0 +1,17 @@
+# Минимальный набор для VPS с Yandex STT/TTS (без локального Whisper/torch)
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+sqlalchemy[asyncio]==2.0.36
+aiosqlite==0.20.0
+pydantic==2.10.3
+pydantic-settings==2.6.1
+email-validator>=2.0.0
+python-multipart==0.0.17
+httpx==0.28.1
+aiofiles==24.1.0
+python-docx==1.1.2
+pypdf==5.1.0
+edge-tts>=6.1.0
+imageio-ffmpeg>=0.5.1
+python-pptx>=0.6.23
+numpy>=1.26.0

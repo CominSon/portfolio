@@ -1,0 +1,15 @@
+# Пример для Cloudflare Tunnel — скопируйте и подставьте свой домен.
+# cp config/cloudflared.example.yml ~/.cloudflared/config.yml
+#
+# Перед этим: cloudflared tunnel login
+#              cloudflared tunnel create ai-interview
+# Подставьте TUNNEL_ID из вывода create (или: cloudflared tunnel list)
+
+tunnel: ai-interview
+credentials-file: /home/ВАШ_ЛОГИН/.cloudflared/TUNNEL_ID.json
+
+ingress:
+  # Один адрес: UI + /api и /ws проксируются Vite на localhost:8000
+  - hostname: interview.ваш-домен.ru
+    service: http://127.0.0.1:5173
+  - service: http_status:404

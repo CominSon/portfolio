@@ -1,0 +1,25 @@
+# Локальный запуск без Docker (SQLite, без PostgreSQL/asyncpg, без whisper)
+# Поддерживается Python 3.10–3.13 (НЕ 3.14 — pydantic/asyncpg пока не совместимы)
+
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+sqlalchemy[asyncio]==2.0.36
+aiosqlite==0.20.0
+pydantic==2.10.3
+pydantic-settings==2.6.1
+email-validator>=2.0.0
+python-multipart==0.0.17
+httpx==0.28.1
+aiofiles==24.1.0
+python-docx==1.1.2
+pypdf==5.1.0
+# TTS Silero (русский, офлайн). torch — в run-local.sh (CPU wheel)
+soundfile>=0.12.1
+omegaconf>=2.3.0
+# STT (распознавание ответов кандидата)
+faster-whisper>=1.1.0
+# TTS edge (ru+en, быстрее Silero; опционально: TTS_ENGINE=edge в .env)
+edge-tts>=6.1.0
+# Монтаж видео (встроенный ffmpeg)
+imageio-ffmpeg>=0.5.1
+python-pptx>=0.6.23

@@ -1,0 +1,161 @@
+/* базовая типографика */
+body {
+    font-family: Arial, sans-serif;
+    min-height: 100vh;
+    margin: 0;
+    /* фон */
+    background: url("bg.png") no-repeat center/cover;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+}
+
+/* ---------- Заголовок ---------- */
+h1 {
+    margin: 0 0 2.5rem;
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: #ffffff;
+    text-shadow: 0 2px 6px rgba(0,0,0,.25);
+}
+
+/* ---------- Поисковая панель ---------- */
+.search-container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 58rem;
+    height: 4.5rem;
+    border-radius: 3rem;
+    box-shadow: 0 8px 18px rgba(0, 0, 0,.25);
+    overflow: hidden;
+    background: rgba(255,255,255,.85);
+    padding: 0;
+}
+
+/* поле ввода */
+#questionInput {
+    flex: 1 1 auto;
+    padding: 0 1.4rem;
+    font-size: 1.1rem;
+    border: none;
+    background: transparent;
+    outline: none;
+}
+
+
+#questionInput::placeholder {
+    color: rgba(0,0,0,.55);
+}
+
+/* кнопка */
+.search-btn{
+    flex:0 0 auto;              /* ширина только по содержимому + padding */
+    height:100%;                /* = 4.5 rem → ровно по высоте контейнера */
+    padding:0 3rem;             /* ШИРИНА кнопки — меняйте это значение */
+    font-size:1.1rem;
+    font-weight:600;
+    color:#fff;
+    border:none;
+    background:linear-gradient(135deg,#00b35b,#00d46d);
+    cursor:pointer;
+    transition:transform .15s ease,box-shadow .15s ease;
+    /* скругляем только справа, слева 0 — чтобы «прилипло» к инпуту */
+    border-radius:0 3rem 3rem 0;
+}
+.search-btn:hover  {transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,.2);}
+.search-btn:active {transform:none;              box-shadow:0 2px  6px rgba(0,0,0,.2);}
+
+
+/* блок ответа */
+.answer-box {
+    width: 100%;
+    max-width: 80rem;
+    padding: 1.5rem 2rem;
+    border: 2px solid #00804b;
+    border-radius: 8px;
+    background: #f9f9f9;
+    white-space: pre-wrap;
+    line-height: 1.4;
+    font-size: 1rem;
+    margin-top: 3rem;
+}
+/* ---------- блок обратной связи ---------- */
+.feedback-box {
+    margin-top: 1.2rem;
+    display: flex;
+    justify-content: center;
+    gap: 1.2rem;          /* расстояние между Like / Dislike */
+}
+
+/* общая стилистика кнопок */
+.feedback-btn {
+    flex: 0 0 auto;
+    padding: 0.8rem 2.4rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 2rem;
+    cursor: pointer;
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+
+/* ― Like (зелёный) ― */
+.feedback-like {
+    background: linear-gradient(135deg,#00b35b,#00d46d);
+    color: #fff;
+}
+.feedback-like:hover  { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.20); }
+.feedback-like:active { transform: none;              box-shadow: 0 2px  6px rgba(0,0,0,.15); }
+
+/* ― Dislike (красный, на будущее) ―*/
+.feedback-dislike {
+    background: linear-gradient(135deg,#e14b4b,#ff6565);
+    color:#fff;
+}
+.feedback-dislike:hover  { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.20);}
+.feedback-dislike:active { transform: none;              box-shadow: 0 2px 6px rgba(0,0,0,.15);}
+
+
+.flashes {
+    list-style: none;
+    margin: 1.5rem auto;
+    padding: 0;
+    max-width: 60rem;
+
+}
+.flashes li {
+    background: rgba(255,255,255,0.85);
+    border: 2px solid #00804b;
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    line-height: 1.35;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,.12);
+}
+.refresh-wrapper{
+    position: fixed;
+    top: 1.2rem;
+    right: 1.2rem;
+    z-index: 1000;
+}
+
+/* сама кнопка: маленькая «пилюля» */
+.refresh-btn{
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.35rem;
+    line-height: 1;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: linear-gradient(135deg,#4289ff,#55a2ff);
+    color:#fff;
+    cursor:pointer;
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+.refresh-btn:hover  { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,.2);}
+.refresh-btn:active { transform: none;              box-shadow: 0 2px 6px  rgba(0,0,0,.15);}
+

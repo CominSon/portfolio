@@ -1,0 +1,1 @@
+cd /home/datalab/nfs/AIWidgetSummaryOS/src && python -u /home/datalab/nfs/AIWidgetSummaryOS/src/checks.py

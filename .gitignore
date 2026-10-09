@@ -4,15 +4,42 @@ __pycache__/
 *$py.class
 *.egg-info/
 .venv/
+.venv-test/
 venv/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.python-version
+
+# Node / frontend
+node_modules/
+dist/
+build/
+.next/
+coverage/
+*.tsbuildinfo
 
 # Secrets / local runtime
 .env
 .env.*
+!.env.example
+!**/.env.example
 *.pem
+*.key
 cookies.json
 *_cookies.json
 results/profile/
+.quick-tunnel-url
+
+# Runtime data
+*.log
+logs/
+recordings/
+exports/
+*.db
+*.db-*
+data/
 
 # Office temp locks
 ~$*
@@ -24,3 +51,4 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+*.swo

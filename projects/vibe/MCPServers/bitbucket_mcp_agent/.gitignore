@@ -1,0 +1,4 @@
+logs/
+bb_mcp_config/
+__pycache__/
+*.pyc

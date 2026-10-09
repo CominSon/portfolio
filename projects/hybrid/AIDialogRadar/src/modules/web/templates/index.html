@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Поисковик по группам Сбер-чата</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="refresh-wrapper">
+        <!-- кнопка обновления -->
+    <form method="post" action="{{ url_for('reload_chats') }}">
+        <button class="refresh-btn" type="submit">🔄</button>
+    </form>
+    </div>
+    <h1>Введите вопрос</h1>
+    <form class="search-container" method="post" action="{{ url_for('index') }}">
+        <input id="questionInput"
+               type="text"
+               name="question"
+               placeholder="Ваш вопрос"
+               value="{{ question or '' }}"
+               autocomplete="off"
+        />
+        <button class="search-btn" type="submit">Поиск</button>
+
+    </form>
+
+        <!-- ▸ flash сообщения, если используете flash() -->
+    {% with msgs = get_flashed_messages(with_categories=true) %}
+      {% if msgs %}
+        <ul class="flashes">
+          {% for cat, m in msgs %}
+            <li class="{{ cat }}">{{ m }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <!-- ▸ найденный / сгенерированный ответ + кнопка Like -->
+    {% if answer %}
+      <div class="answer-box">{{ answer }}</div>
+      <!-- новый блок кнопок -->
+      <div class="feedback-box">
+
+        <!-- 👍 Like -->
+        <form action="{{ url_for('like') }}" method="post">
+            <input type="hidden" name="question"     value="{{ question }}">
+            <input type="hidden" name="answer"       value="{{ answer }}">
+            <input type="hidden" name="similarity"   value="{{ similarity }}">
+            <input type="hidden" name="is_reference" value="{{ 'true' if is_reference else 'false' }}">
+            <input type="hidden" name="ref_question" value="{{ ref_question or '' }}">
+            <button class="feedback-btn feedback-like" type="submit">👍 Like</button>
+        </form>
+        <!-- 👎 Dislike -->
+        <form action="{{ url_for('dislike') }}" method="post">
+            <input type="hidden" name="attempts"     value="{{ attempts or 0 }}">
+            <input type="hidden" name="question"     value="{{ question }}">
+            <input type="hidden" name="answer"       value="{{ answer }}">
+            <input type="hidden" name="similarity"   value="{{ similarity }}">
+            <input type="hidden" name="is_reference" value="{{ 'true' if is_reference else 'false' }}">
+            <input type="hidden" name="ref_question" value="{{ ref_question or '' }}">
+            <button class="feedback-btn feedback-dislike" type="submit">👎 Dislike</button>
+        </form>
+
+      </div>
+    {% endif %}
+
+</body>
+</html>
